@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AACE 2026 Guidelines - Smart 3D Flashcards, Dosages & GDM</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#035388',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* 3D Flip Card Scene & Elements */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(107, 114, 128, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col transition-colors duration-200">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-brand-600 text-white rounded-xl shadow-md">
+                    <i class="fa-solid fa-stethoscope text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg sm:text-xl text-slate-900 dark:text-white leading-tight">AACE Guidelines & GDM Suite</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">3D Flashcards • Drug Dosing • Gestational Diabetes Clinical Guide</p>
+                </div>
+            </div>
+
+            <!-- Global Action Controls -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Clinical Tools Button -->
+                <button onclick="openToolsModal()" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-calculator text-brand-600 dark:text-brand-400"></i>
+                    <span>Tools</span>
+                </button>
+
+                <!-- Study / Grid Toggle -->
+                <button id="modeToggleBtn" onclick="toggleMode()" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center space-x-2">
+                    <i id="modeIcon" class="fa-solid fa-graduation-cap text-brand-600 dark:text-brand-400"></i>
+                    <span id="modeText">Study Mode</span>
+                </button>
+
+                <!-- Theme Switcher -->
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Theme">
+                    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
+
+        <!-- Navigation Tabs / Category Filters -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div class="flex flex-wrap gap-2" id="categoryFilters">
+                <button onclick="filterCategory('all')" class="cat-btn active px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border bg-slate-900 text-white dark:bg-brand-600 border-transparent shadow-sm transition">
+                    All (<span id="count-all">0</span>)
+                </button>
+                <button onclick="filterCategory('gdm')" class="cat-btn px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-pink-500 transition">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-pink-500 mr-1.5"></span>GDM / Pregnancy (<span id="count-gdm">0</span>)
+                </button>
+                <button onclick="filterCategory('dosing')" class="cat-btn px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-amber-500 transition">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span>Drug Dosing & eGFR (<span id="count-dosing">0</span>)
+                </button>
+                <button onclick="filterCategory('prediabetes')" class="cat-btn px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-500 transition">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 mr-1.5"></span>Prediabetes (<span id="count-prediabetes">0</span>)
+                </button>
+                <button onclick="filterCategory('glucose')" class="cat-btn px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-purple-500 transition">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-purple-500 mr-1.5"></span>Glucose-Centric (<span id="count-glucose">0</span>)
+                </button>
+                <button onclick="filterCategory('comorbidity')" class="cat-btn px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-500 transition">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span>Comorbidities (<span id="count-comorbidity">0</span>)
+                </button>
+            </div>
+
+            <!-- Search Field -->
+            <div class="relative w-full md:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search GDM, doses, targets..." class="w-full pl-10 pr-4 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-slate-100 placeholder-slate-400">
+            </div>
+        </div>
+
+        <!-- STUDY / QUIZ MODE VIEW -->
+        <div id="studyModeContainer" class="hidden flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full py-2">
+            
+            <!-- Progress Header -->
+            <div class="w-full bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6">
+                <div class="flex justify-between items-center text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                    <span id="studyProgressText">Card 1 of 0</span>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-check-circle mr-1"></i>Mastered: <span id="masteredCount">0</span></span>
+                        <span class="text-amber-600 dark:text-amber-400"><i class="fa-solid fa-rotate-right mr-1"></i>Review: <span id="reviewCount">0</span></span>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                    <div id="studyProgressBar" class="bg-brand-600 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <!-- Single 3D Interactive Card -->
+            <div class="w-full h-[470px] sm:h-[450px] perspective-1000 cursor-pointer" onclick="flipStudyCard()">
+                <div id="studyCardInner" class="relative w-full h-full transform-style-3d shadow-xl rounded-2xl">
+                    
+                    <!-- Front Side -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl p-6 sm:p-8 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <span id="studyCardCategory" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300">GDM / Pregnancy</span>
+                                <span class="text-xs text-slate-400"><i class="fa-solid fa-hand-pointer mr-1"></i>Click Card to Flip</span>
+                            </div>
+                            <h3 id="studyCardQuestion" class="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white mb-3">Card Title</h3>
+                            <p id="studyCardSubtext" class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">Question Prompt</p>
+                        </div>
+                        <div class="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-700/50 text-xs text-slate-400">
+                            <span>AACE 2026 Guidelines</span>
+                            <span class="text-brand-500 font-semibold"><i class="fa-solid fa-arrows-rotate mr-1"></i>Flip Card</span>
+                        </div>
+                    </div>
+
+                    <!-- Back Side -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-slate-900 text-white rounded-2xl p-6 sm:p-8 flex flex-col justify-between border-2 border-brand-500 overflow-y-auto">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30">Clinical Decision & Guidelines</span>
+                                <span class="text-xs text-slate-400"><i class="fa-solid fa-check mr-1"></i>Key Insight</span>
+                            </div>
+                            <div id="studyCardAnswer" class="text-xs sm:text-sm leading-relaxed text-slate-200 space-y-2">
+                                <!-- Dynamic Answer Content -->
+                            </div>
+                        </div>
+                        <div class="pt-3 border-t border-slate-800 text-xs text-slate-400 flex justify-between items-center">
+                            <span>Click card to return to question</span>
+                            <i class="fa-solid fa-arrow-turn-down-left"></i>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Quiz Controls -->
+            <div class="flex items-center justify-between w-full mt-6 gap-3">
+                <button onclick="prevStudyCard()" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold text-sm transition flex items-center">
+                    <i class="fa-solid fa-chevron-left mr-2"></i>Prev
+                </button>
+
+                <div class="flex items-center space-x-2">
+                    <button onclick="markCard(false)" class="px-4 py-2.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700/50 rounded-xl hover:bg-amber-200 dark:hover:bg-amber-900/50 font-semibold text-sm transition flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>Review Later
+                    </button>
+                    <button onclick="markCard(true)" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm shadow-md transition flex items-center">
+                        <i class="fa-solid fa-check mr-1.5"></i>Mastered
+                    </button>
+                </div>
+
+                <button onclick="nextStudyCard()" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold text-sm transition flex items-center">
+                    Next<i class="fa-solid fa-chevron-right ml-2"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- BROWSE / GRID MODE VIEW -->
+        <div id="browseModeContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards populated dynamically via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-1 flex flex-col items-center justify-center text-center py-12">
+            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-400 mb-3">
+                <i class="fa-solid fa-magnifying-glass text-3xl"></i>
+            </div>
+            <h3 class="text-base font-semibold text-slate-800 dark:text-slate-200">No matching flashcards found</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Try adjusting your search query or category filter</p>
+        </div>
+
+    </main>
+
+    <!-- Clinical Toolkit Modal -->
+    <div id="toolsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-calculator text-brand-600 dark:text-brand-400 text-lg"></i>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">AACE Clinical Toolkit</h3>
+                </div>
+                <button onclick="closeToolsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-6">
+
+                <!-- GDM OGTT Diagnostic Evaluator Tool -->
+                <div class="bg-pink-50/50 dark:bg-pink-950/20 p-4 rounded-xl border border-pink-200 dark:border-pink-900/50">
+                    <h4 class="font-bold text-sm text-pink-900 dark:text-pink-200 mb-2 flex items-center">
+                        <i class="fa-solid fa-baby mr-2 text-pink-500"></i>GDM OGTT Diagnostic Evaluator (75g One-Step)
+                    </h4>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Enter oral glucose tolerance test plasma values (mg/dL) performed at 24–28 weeks gestation.</p>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <div>
+                            <label class="block text-[11px] text-slate-500 dark:text-slate-400 mb-1">Fasting (mg/dL)</label>
+                            <input type="number" id="ogttFasting" placeholder="92" class="w-full px-2.5 py-1.5 text-xs rounded-lg border dark:bg-slate-800 dark:border-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 dark:text-slate-400 mb-1">1-Hour (mg/dL)</label>
+                            <input type="number" id="ogtt1hr" placeholder="180" class="w-full px-2.5 py-1.5 text-xs rounded-lg border dark:bg-slate-800 dark:border-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 dark:text-slate-400 mb-1">2-Hour (mg/dL)</label>
+                            <input type="number" id="ogtt2hr" placeholder="153" class="w-full px-2.5 py-1.5 text-xs rounded-lg border dark:bg-slate-800 dark:border-slate-700">
+                        </div>
+                    </div>
+                    <button onclick="evaluateGDMOGTT()" class="w-full py-1.5 bg-pink-600 text-white rounded-lg text-xs font-semibold hover:bg-pink-700 transition">Evaluate GDM Diagnostic Criteria</button>
+                    <div id="gdmResult" class="mt-2 text-xs"></div>
+                </div>
+
+                <!-- BMI Calculator -->
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-2 flex items-center">
+                        <i class="fa-solid fa-weight-scale mr-2 text-brand-500"></i>BMI & Weight Cutoff Assessor
+                    </h4>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Weight (kg)</label>
+                            <input type="number" id="calcWeight" placeholder="70" class="w-full px-3 py-1.5 text-xs rounded-lg border dark:bg-slate-800 dark:border-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Height (cm)</label>
+                            <input type="number" id="calcHeight" placeholder="170" class="w-full px-3 py-1.5 text-xs rounded-lg border dark:bg-slate-800 dark:border-slate-700">
+                        </div>
+                    </div>
+                    <button onclick="calculateBMI()" class="w-full py-1.5 bg-brand-600 text-white rounded-lg text-xs font-semibold hover:bg-brand-700 transition">Calculate BMI Thresholds</button>
+                    <div id="bmiResult" class="mt-2 text-xs font-medium text-slate-700 dark:text-slate-300"></div>
+                </div>
+
+                <!-- eGFR & CKD Dosing Assessor -->
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-2 flex items-center">
+                        <i class="fa-solid fa-kidney mr-2 text-emerald-500"></i>eGFR & Renal Dosing Assessor
+                    </h4>
+                    <div class="mb-3">
+                        <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Patient eGFR (mL/min/1.73m²)</label>
+                        <input type="number" id="calcEGFR" placeholder="45" class="w-full px-3 py-1.5 text-xs rounded-lg border dark:bg-slate-800 dark:border-slate-700">
+                    </div>
+                    <button onclick="evaluateEGFR()" class="w-full py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 transition">Check Drug Safety</button>
+                    <div id="egfrResult" class="mt-2 text-xs text-slate-700 dark:text-slate-300"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Summary Section -->
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <div>
+                Based on <span class="font-semibold text-slate-700 dark:text-slate-300">AACE Consensus Statement Guidelines</span> | Endocrine Practice
+            </div>
+            <div class="flex items-center space-x-4">
+                <span>Updates in Medicine</span>
+                <span>•</span>
+                <span>Clinical Flashcards, Dosages & GDM Suite</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Guideline Dataset including GDM, Dosing, Prediabetes, Glucose-Centric & Comorbidities
+        const cardsData = [
+            // --- GESTATIONAL DIABETES MELLITUS (GDM) CARDS ---
+            {
+                id: 201,
+                category: "gdm",
+                title: "GDM: One-Step Diagnostic Criteria (75g OGTT)",
+                question: "What are the IADPSG/AACE one-step 75g OGTT diagnostic thresholds at 24–28 weeks gestation?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <p class="text-pink-300 font-semibold">Diagnosis of GDM is made if <u>ANY ONE</u> plasma glucose value is met or exceeded:</p>
+                        <ul class="space-y-1.5 bg-slate-800 p-2.5 rounded border border-slate-700">
+                            <li class="flex justify-between">
+                                <span>• Fasting Glucose:</span>
+                                <strong class="text-pink-400">≥ 92 mg/dL (5.1 mmol/L)</strong>
+                            </li>
+                            <li class="flex justify-between">
+                                <span>• 1-Hour Glucose:</span>
+                                <strong class="text-pink-400">≥ 180 mg/dL (10.0 mmol/L)</strong>
+                            </li>
+                            <li class="flex justify-between">
+                                <span>• 2-Hour Glucose:</span>
+                                <strong class="text-pink-400">≥ 153 mg/dL (8.5 mmol/L)</strong>
+                            </li>
+                        </ul>
+                        <p class="text-[11px] text-slate-300">Performed after an overnight fast of at least 8 hours at 24–28 weeks gestation in non-diabetic pregnant women.</p>
+                    </div>
+                `,
+                keywords: ["gdm", "ogtt", "one-step", "iadpsg", "75g", "fasting 92", "180", "153", "gestational"]
+            },
+            {
+                id: 202,
+                category: "gdm",
+                title: "GDM: Two-Step Diagnostic Criteria (50g GCT + 100g OGTT)",
+                question: "What are the thresholds for the Carpenter-Coustan Two-Step screening protocol?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2 bg-slate-800 rounded border border-slate-700">
+                            <strong class="text-amber-300">Step 1 (50g Non-fasting GCT):</strong>
+                            <p>If 1-hour glucose <strong>≥ 130 or 140 mg/dL</strong>, proceed to Step 2 100g OGTT.</p>
+                        </div>
+                        <div class="p-2 bg-slate-800 rounded border border-slate-700">
+                            <strong class="text-pink-300">Step 2 (100g Fasting OGTT - Carpenter/Coustan):</strong>
+                            <p class="mb-1 text-[11px]">Requires at least <u>TWO</u> abnormal values:</p>
+                            <ul class="list-disc pl-4 space-y-0.5 text-slate-200">
+                                <li>Fasting: <strong>≥ 95 mg/dL</strong></li>
+                                <li>1-Hour: <strong>≥ 180 mg/dL</strong></li>
+                                <li>2-Hour: <strong>≥ 155 mg/dL</strong></li>
+                                <li>3-Hour: <strong>≥ 140 mg/dL</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                `,
+                keywords: ["gdm", "two-step", "carpenter coustan", "50g", "100g", "gct", "ogtt"]
+            },
+            {
+                id: 203,
+                category: "gdm",
+                title: "GDM: Glycemic Targets During Pregnancy",
+                question: "What are the recommended capillary self-monitoring blood glucose (SMBG) targets for GDM?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2.5 bg-slate-800 rounded border border-slate-700 space-y-1.5">
+                            <div class="flex justify-between items-center border-b border-slate-700 pb-1">
+                                <span class="text-slate-300">Fasting Glucose:</span>
+                                <strong class="text-emerald-400">≤ 95 mg/dL (5.3 mmol/L)</strong>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-slate-700 pb-1">
+                                <span class="text-slate-300">1-Hour Postprandial:</span>
+                                <strong class="text-emerald-400">≤ 140 mg/dL (7.8 mmol/L)</strong>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-300">2-Hour Postprandial:</span>
+                                <strong class="text-emerald-400">≤ 120 mg/dL (6.7 mmol/L)</strong>
+                            </div>
+                        </div>
+                        <p class="text-amber-300 text-[11px] bg-amber-950/40 p-2 rounded">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Lower thresholds are maintained in pregnancy to prevent fetal macrosomia and neonatal hypoglycemia.
+                        </p>
+                    </div>
+                `,
+                keywords: ["gdm", "targets", "fasting 95", "1-hour 140", "2-hour 120", "glycemic goals", "pregnancy"]
+            },
+            {
+                id: 204,
+                category: "gdm",
+                title: "GDM: First-Line Management & MNT",
+                question: "What comprises first-line management and glucose monitoring for newly diagnosed GDM?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <p><strong class="text-pink-300">1. Medical Nutrition Therapy (MNT):</strong> Individualized meal plan with controlled carbohydrates (35–45% total calories, spread over 3 main meals + 2–3 snacks to prevent nocturnal ketosis).</p>
+                        <p><strong class="text-pink-300">2. Physical Activity:</strong> Moderate aerobic exercise 20–30 min/day (e.g., brisk walking after meals).</p>
+                        <p><strong class="text-pink-300">3. SMBG Frequency:</strong> 4 times daily (Fasting + 1-hr or 2-hr post-mealtimes).</p>
+                        <p class="text-slate-300 bg-slate-800 p-2 rounded">If >10-20% of glucose readings exceed targets over 1-2 weeks, initiate pharmacotherapy immediately.</p>
+                    </div>
+                `,
+                keywords: ["mnt", "nutrition", "exercise", "smbg", "first line", "gdm", "carbohydrates"]
+            },
+            {
+                id: 205,
+                category: "gdm",
+                title: "GDM: Pharmacotherapy & Insulin Regimens",
+                question: "What is the preferred drug therapy in GDM and how are insulin regimens structured?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2 bg-emerald-950/40 border border-emerald-600/40 rounded">
+                            <strong class="text-emerald-300">First-Line Gold Standard: INSULIN</strong>
+                            <p class="mt-0.5">Insulin does NOT cross the placenta in significant amounts and is safe for fetus.</p>
+                        </div>
+                        <p><strong class="text-amber-300">Regimen Design:</strong></p>
+                        <ul class="list-disc pl-4 space-y-1 text-slate-300">
+                            <li><strong>Fasting Hyperglycemia:</strong> Initiate Basal Insulin (NPH at bedtime, or Detemir / Glargine). Starting total dose ~0.7 to 1.0 Units/kg/day.</li>
+                            <li><strong>Postprandial Hyperglycemia:</strong> Add Rapid-Acting Prandial Insulin before meals (Lispro, Aspart).</li>
+                        </ul>
+                    </div>
+                `,
+                keywords: ["insulin", "gdm", "nph", "detemir", "glargine", "lispro", "aspart", "first line", "pregnancy"]
+            },
+            {
+                id: 206,
+                category: "gdm",
+                title: "GDM: Oral Agents & Placental Transfer Risks",
+                question: "Why are Metformin and Glyburide non-preferred / 2nd-line in GDM, and what are their cautions?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2 bg-slate-800 rounded border border-slate-700">
+                            <strong class="text-rose-300">Metformin:</strong>
+                            <p class="mt-0.5">Crosses placenta readily (fetal levels = maternal levels). Associated with higher rate of preterm birth and small-for-gestational-age or subsequent childhood obesity.</p>
+                        </div>
+                        <div class="p-2 bg-slate-800 rounded border border-slate-700">
+                            <strong class="text-rose-300">Glyburide (Sulfonylurea):</strong>
+                            <p class="mt-0.5">Crosses placenta. High rates of neonatal hypoglycemia and increased macrisomia compared to insulin. Fails to achieve control in >30% of women.</p>
+                        </div>
+                        <p class="text-amber-300 text-[11px]">⚠️ Reserve oral agents only when patients refuse or cannot afford/administer insulin safely.</p>
+                    </div>
+                `,
+                keywords: ["metformin", "glyburide", "oral agents", "gdm", "placenta", "risks", "neonatal hypoglycemia"]
+            },
+            {
+                id: 207,
+                category: "gdm",
+                title: "GDM: Postpartum Care & Screening Schedule",
+                question: "What is the postpartum follow-up protocol and lifelong diabetes screening schedule after GDM?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2 bg-pink-950/40 border border-pink-600/40 rounded">
+                            <strong class="text-pink-300">Postpartum 4–12 Weeks Screening:</strong>
+                            <p class="mt-0.5">Perform a <strong>75g 2-hour OGTT</strong> (using standard non-pregnant diagnostic cutoffs) to screen for persistent T2D or prediabetes.</p>
+                        </div>
+                        <ul class="list-disc pl-4 space-y-1 text-slate-300">
+                            <li><strong>Lifelong Screening:</strong> Screen for T2D/Prediabetes every 1 to 3 years.</li>
+                            <li><strong>Breastfeeding:</strong> Strongly encouraged; reduces maternal risk of T2D and improves offspring metabolic outcomes.</li>
+                            <li><strong>Intervention:</strong> Lifestyle modification ± Metformin if prediabetes detected.</li>
+                        </ul>
+                    </div>
+                `,
+                keywords: ["postpartum", "ogtt", "4-12 weeks", "breastfeeding", "gdm", "screening", "type 2 diabetes risk"]
+            },
+
+            // --- DOSAGE SPECIFIC CARDS ---
+            {
+                id: 101,
+                category: "dosing",
+                title: "GLP-1 RA: Semaglutide (Subcutaneous & Oral)",
+                question: "What are the starting dosages, titration schedule, maximum dosages, and renal adjustments for Semaglutide?",
+                answer: `
+                    <div class="space-y-2">
+                        <div class="p-2 bg-slate-800 rounded border border-slate-700">
+                            <strong class="text-amber-300">Subcutaneous (Ozempic/Wegovy):</strong>
+                            <ul class="list-disc pl-4 mt-1 text-xs space-y-0.5">
+                                <li><strong>Initial:</strong> 0.25 mg SC once weekly for 4 weeks.</li>
+                                <li><strong>Titration:</strong> Increase to 0.5 mg weekly. If needed, step up to 1 mg then 2 mg weekly (or up to 2.4 mg weekly for obesity).</li>
+                                <li><strong>Max Dose:</strong> 2.0 mg/week (T2D) or 2.4 mg/week (Weight/CV).</li>
+                            </ul>
+                        </div>
+                        <div class="p-2 bg-slate-800 rounded border border-slate-700">
+                            <strong class="text-amber-300">Oral (Rybelsus):</strong>
+                            <ul class="list-disc pl-4 mt-1 text-xs space-y-0.5">
+                                <li><strong>Initial:</strong> 3 mg orally once daily for 30 days.</li>
+                                <li><strong>Titration:</strong> Increase to 7 mg daily, then 14 mg daily if glycemic target unmet.</li>
+                                <li><strong>Admin:</strong> Take upon waking on an empty stomach with ≤4 oz plain water; wait ≥30 min before eating/drinking.</li>
+                            </ul>
+                        </div>
+                        <p class="text-xs text-emerald-300"><strong>Renal Adjustment:</strong> No dosage adjustment required across any eGFR level (including ESRD).</p>
+                    </div>
+                `,
+                keywords: ["semaglutide", "ozempic", "rybelsus", "wegovy", "glp1", "dosage", "weekly", "oral"]
+            },
+            {
+                id: 102,
+                category: "dosing",
+                title: "GIP / GLP-1 RA: Tirzepatide (Mounjaro / Zepbound)",
+                question: "What is the dosing protocol, titration frequency, and max dose for Tirzepatide?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <p><strong class="text-amber-300">Initial / Starting Dosage:</strong> 2.5 mg SC once weekly for 4 weeks (initiating dose; non-therapeutic for glycemic control).</p>
+                        <p><strong class="text-amber-300">Titration Schedule:</strong> Increase by 2.5 mg increments every 4 weeks based on efficacy and tolerability (5 mg, 7.5 mg, 10 mg, 12.5 mg, 15 mg).</p>
+                        <p><strong class="text-amber-300">Maximum Dose:</strong> 15 mg SC once weekly.</p>
+                        <div class="p-2 bg-slate-800 rounded border border-slate-700">
+                            <strong class="text-emerald-400">Renal & Hepatic Dosing:</strong>
+                            <p>No dose adjustment necessary for kidney or liver impairment. High weight-loss and MASH resolution efficacy in AACE 2026.</p>
+                        </div>
+                    </div>
+                `,
+                keywords: ["tirzepatide", "mounjaro", "zepbound", "gip", "glp1", "dosing", "weekly", "titration"]
+            },
+            {
+                id: 103,
+                category: "dosing",
+                title: "SGLT2 Inhibitors: Empagliflozin, Dapagliflozin, Canagliflozin",
+                question: "What are the starting, target, and max daily dosages, along with eGFR cutoffs for SGLT2 inhibitors?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <ul class="space-y-1.5">
+                            <li class="p-1.5 bg-slate-800 rounded">
+                                <strong class="text-emerald-300">Empagliflozin (Jardiance):</strong> Start 10 mg once daily with/without food in morning. Max 25 mg daily. 
+                                <span class="text-slate-300 block">Renal: Glycemic efficacy diminishes below eGFR 45; continuation recommended down to eGFR 20 for HF/CKD benefit.</span>
+                            </li>
+                            <li class="p-1.5 bg-slate-800 rounded">
+                                <strong class="text-emerald-300">Dapagliflozin (Farxiga):</strong> Start 5 mg daily; target 10 mg daily. Max 10 mg daily.
+                                <span class="text-slate-300 block">Renal: Continue down to eGFR 25 for CKD/HF progression reduction.</span>
+                            </li>
+                            <li class="p-1.5 bg-slate-800 rounded">
+                                <strong class="text-emerald-300">Canagliflozin (Invokana):</strong> Start 100 mg daily before first meal; max 300 mg daily (max 100 mg daily if eGFR 30–<60).
+                            </li>
+                        </ul>
+                        <p class="text-rose-300 bg-rose-950/40 p-1.5 rounded">⚠️ <strong>DKA Warning:</strong> Hold prior to major surgery or acute illness due to euglycemic DKA risk.</p>
+                    </div>
+                `,
+                keywords: ["sglt2", "empagliflozin", "dapagliflozin", "canagliflozin", "jardiance", "farxiga", "invokana", "egfr"]
+            },
+            {
+                id: 104,
+                category: "dosing",
+                title: "Metformin (Immediate & Extended Release)",
+                question: "What is the starting dose, titration scheme, max dose, and eGFR dose adjustment for Metformin?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <p><strong class="text-amber-300">Initial Dosage:</strong> 500 mg orally once or twice daily with meals (or 500–1000 mg ER once daily with evening meal).</p>
+                        <p><strong class="text-amber-300">Titration:</strong> Increase by 500 mg weekly or every 2 weeks to minimize GI adverse effects.</p>
+                        <p><strong class="text-amber-300">Maximum Dose:</strong> 2,000–2,550 mg/day (IR: 1000 mg BID; ER: 2000 mg daily).</p>
+                        <div class="p-2 bg-slate-800 rounded border border-slate-700">
+                            <strong class="text-rose-300">eGFR Cutoffs & Renal Rules:</strong>
+                            <ul class="list-disc pl-4 space-y-0.5 mt-1">
+                                <li><strong>eGFR ≥60:</strong> Monitor renal function annually.</li>
+                                <li><strong>eGFR 45–59:</strong> Safe; monitor q3-6m.</li>
+                                <li><strong>eGFR 30–44:</strong> Max dose 1,000 mg/day; do not start new therapy.</li>
+                                <li><strong>eGFR <30:</strong> CONTRAINDICATED (lactic acidosis risk).</li>
+                            </ul>
+                        </div>
+                    </div>
+                `,
+                keywords: ["metformin", "glucophage", "dosing", "egfr", "titration", "extended release"]
+            },
+            {
+                id: 105,
+                category: "dosing",
+                title: "Nonsteroidal MRA: Finerenone (Kerendia)",
+                question: "What are the starting dose based on eGFR, titration schedule, and max dose for Finerenone?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <p><strong class="text-purple-300">Indication:</strong> Albuminuric CKD in T2D (eGFR ≥25 & UACR ≥30 mg/g).</p>
+                        <p><strong class="text-amber-300">Initial Dosage (Based on eGFR):</strong></p>
+                        <ul class="list-disc pl-4 space-y-1 text-slate-300">
+                            <li><strong>eGFR ≥60 mL/min/1.73m²:</strong> Start 20 mg once daily.</li>
+                            <li><strong>eGFR 25 to <60 mL/min/1.73m²:</strong> Start 10 mg once daily.</li>
+                        </ul>
+                        <p><strong class="text-amber-300">Titration:</strong> Increase to target 20 mg daily after 4 weeks if serum potassium ≤4.8 mEq/L.</p>
+                        <p><strong class="text-amber-300">Maximum Dose:</strong> 20 mg once daily.</p>
+                        <p class="text-rose-300">⚠️ Monitor serum K+ at 4 weeks after initiating or titrating.</p>
+                    </div>
+                `,
+                keywords: ["finerenone", "kerendia", "mra", "ckd", "dosing", "potassium", "egfr"]
+            },
+
+            // --- PREDIABETES CARDS ---
+            {
+                id: 1,
+                category: "prediabetes",
+                title: "Prediabetes: Diagnostic Criteria",
+                question: "What are the core diagnostic threshold levels for Prediabetes?",
+                answer: `
+                    <ul class="space-y-2">
+                        <li><strong class="text-blue-400">Fasting Plasma Glucose (FPG):</strong> 100 – 125 mg/dL</li>
+                        <li><strong class="text-blue-400">2-hour OGTT Glucose:</strong> 140 – 199 mg/dL</li>
+                        <li><strong class="text-blue-400">A1C:</strong> 5.7 – 6.4%</li>
+                    </ul>
+                    <p class="mt-3 text-xs text-slate-300 bg-slate-800 p-2 rounded border border-slate-700">
+                        <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> Consider an OGTT to confirm prediabetes when A1C suggests chronic hyperglycemia.
+                    </p>
+                `,
+                keywords: ["diagnosis", "fpg", "ogtt", "a1c", "prediabetes", "criteria"]
+            },
+            {
+                id: 5,
+                category: "prediabetes",
+                title: "Prediabetes: Off-Label Pharmacotherapy",
+                question: "Which medications have evidence for T2D prevention in high-risk prediabetes?",
+                answer: `
+                    <p class="mb-2 text-xs">Evidence-based pharmacotherapy options (in selected high-risk individuals):</p>
+                    <ul class="space-y-1 text-xs bg-slate-800 p-2.5 rounded-lg border border-slate-700">
+                        <li>• <strong>Metformin</strong></li>
+                        <li>• <strong>Pioglitazone</strong></li>
+                        <li>• <strong>Acarbose</strong></li>
+                    </ul>
+                    <p class="mt-2 text-[11px] text-amber-300 bg-amber-950/40 p-2 rounded border border-amber-800/50">
+                        ⚠️ <strong>Regulatory Note:</strong> No antihyperglycemic drug currently has a specific FDA indication for prevention of T2D.
+                    </p>
+                `,
+                keywords: ["metformin", "pioglitazone", "acarbose", "prevention", "off-label"]
+            },
+
+            // --- GLUCOSE-CENTRIC ALGORITHM CARDS ---
+            {
+                id: 6,
+                category: "glucose",
+                title: "Glucose-Centric: Severe Hyperglycemia Scenario",
+                question: "How should severe hyperglycemia (A1C >10% / Glucose >300) be managed?",
+                answer: `
+                    <div class="space-y-2 text-xs">
+                        <p><strong class="text-rose-400">Presentation:</strong> A1C >10% and/or glucose >300 mg/dL or symptomatic (catabolic features).</p>
+                        <p><strong class="text-emerald-400">First Action:</strong> Start basal insulin (± prandial insulin).</p>
+                        <ul class="space-y-1 list-disc pl-4 text-slate-300">
+                            <li>GLP-1 RA alone is NOT preferred for immediate control.</li>
+                            <li>Use SGLT2 inhibitors with caution due to risk of Diabetic Ketoacidosis (DKA).</li>
+                        </ul>
+                    </div>
+                `,
+                keywords: ["severe", "hyperglycemia", "insulin", "a1c 10", "glucose 300", "dka"]
+            },
+            {
+                id: 10,
+                category: "glucose",
+                title: "Glucose-Centric: Incretin Combination Rules",
+                question: "What inappropriate incretin drug combination MUST be avoided?",
+                answer: `
+                    <div class="p-3 bg-rose-950/60 border-2 border-rose-500 rounded-xl">
+                        <h4 class="font-bold text-rose-300 text-sm mb-1">❌ Avoid Incretin Combination:</h4>
+                        <p class="text-xs">Do <strong>NOT</strong> combine a <strong>DPP-4 inhibitor</strong> with a <strong>GLP-1 RA</strong> or a <strong>GIP/GLP-1 RA</strong>.</p>
+                        <p class="text-[11px] text-slate-300 mt-2">Provides no additive efficacy and represents redundant therapy.</p>
+                    </div>
+                `,
+                keywords: ["incretin", "dpp4", "glp1", "gip", "avoid", "combination"]
+            },
+
+            // --- COMORBIDITIES CARDS ---
+            {
+                id: 11,
+                category: "comorbidity",
+                title: "Comorbidity Priority Hierarchy",
+                question: "In what order of priority should comorbidities be addressed according to AACE 2026?",
+                answer: `
+                    <p class="mb-2 text-xs text-slate-300">Address in priority order independent of baseline A1C:</p>
+                    <div class="flex flex-wrap items-center gap-1.5 font-bold text-xs">
+                        <span class="px-2 py-1 bg-blue-600 rounded">1. Heart Failure</span>
+                        <span>›</span>
+                        <span class="px-2 py-1 bg-emerald-600 rounded">2. CKD</span>
+                        <span>›</span>
+                        <span class="px-2 py-1 bg-amber-600 rounded">3. ASCVD / High Risk</span>
+                        <span>›</span>
+                        <span class="px-2 py-1 bg-purple-600 rounded">4. Stroke / TIA</span>
+                        <span>›</span>
+                        <span class="px-2 py-1 bg-rose-600 rounded">5. MASLD / MASH</span>
+                    </div>
+                `,
+                keywords: ["hierarchy", "priority", "heart failure", "ckd", "ascvd", "stroke", "masld"]
+            },
+            {
+                id: 15,
+                category: "comorbidity",
+                title: "Comorbidities: MASLD / MASH Management",
+                question: "Which metabolic therapies are recommended for MASLD / MASH in T2D?",
+                answer: `
+                    <ul class="space-y-2 text-xs">
+                        <li class="p-2 bg-emerald-950/40 border border-emerald-600/40 rounded-lg">
+                            <strong class="text-emerald-300">Preferred: GLP-1 RA</strong>
+                            <p>Semaglutide (evidence for MASH resolution and fibrosis improvement).</p>
+                        </li>
+                        <li class="p-2 bg-blue-950/40 border border-blue-600/40 rounded-lg">
+                            <strong class="text-blue-300">Also Consider: GIP/GLP-1 RA</strong>
+                            <p>Tirzepatide (substantial MASH resolution & fibrosis improvement).</p>
+                        </li>
+                        <li class="p-2 bg-slate-800 border border-slate-700 rounded-lg">
+                            <strong class="text-slate-200">Additional Option:</strong> Pioglitazone (in T2D with steatohepatitis).
+                        </li>
+                    </ul>
+                `,
+                keywords: ["masld", "mash", "liver", "semaglutide", "tirzepatide", "pioglitazone", "steatohepatitis"]
+            }
+        ];
+
+        // App State
+        let currentCategory = 'all';
+        let searchQuery = '';
+        let isStudyMode = false;
+        let studyIndex = 0;
+        let filteredCards = [...cardsData];
+        let cardProgress = {}; // id -> 'mastered' | 'review'
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProgress();
+            updateCounts();
+            renderBrowseCards();
+        });
+
+        // Load & Save Progress to localStorage
+        function loadProgress() {
+            const saved = localStorage.getItem('aace_flashcard_progress_v3');
+            if (saved) {
+                try {
+                    cardProgress = JSON.parse(saved);
+                } catch(e) {
+                    cardProgress = {};
+                }
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('aace_flashcard_progress_v3', JSON.stringify(cardProgress));
+            updateStudyStats();
+        }
+
+        // Category Filtering
+        function filterCategory(cat) {
+            currentCategory = cat;
+            
+            // Update Tab UI
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-900', 'text-white', 'dark:bg-brand-600', 'border-transparent');
+                btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300', 'border-slate-200', 'dark:border-slate-700');
+            });
+
+            const activeBtn = event.currentTarget;
+            activeBtn.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300', 'border-slate-200', 'dark:border-slate-700');
+            activeBtn.classList.add('bg-slate-900', 'text-white', 'dark:bg-brand-600', 'border-transparent');
+
+            applyFilters();
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+            applyFilters();
+        }
+
+        function applyFilters() {
+            filteredCards = cardsData.filter(card => {
+                const matchesCat = (currentCategory === 'all' || card.category === currentCategory);
+                const matchesSearch = searchQuery === '' || 
+                    card.title.toLowerCase().includes(searchQuery) ||
+                    card.question.toLowerCase().includes(searchQuery) ||
+                    card.keywords.some(k => k.toLowerCase().includes(searchQuery));
+                return matchesCat && matchesSearch;
+            });
+
+            if (isStudyMode) {
+                studyIndex = 0;
+                renderStudyCard();
+            } else {
+                renderBrowseCards();
+            }
+        }
+
+        function updateCounts() {
+            document.getElementById('count-all').innerText = cardsData.length;
+            document.getElementById('count-gdm').innerText = cardsData.filter(c => c.category === 'gdm').length;
+            document.getElementById('count-dosing').innerText = cardsData.filter(c => c.category === 'dosing').length;
+            document.getElementById('count-prediabetes').innerText = cardsData.filter(c => c.category === 'prediabetes').length;
+            document.getElementById('count-glucose').innerText = cardsData.filter(c => c.category === 'glucose').length;
+            document.getElementById('count-comorbidity').innerText = cardsData.filter(c => c.category === 'comorbidity').length;
+        }
+
+        // Render Cards in Grid/Browse Mode
+        function renderBrowseCards() {
+            const container = document.getElementById('browseModeContainer');
+            const emptyState = document.getElementById('emptyState');
+            container.innerHTML = '';
+
+            if (filteredCards.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filteredCards.forEach(card => {
+                const isMastered = cardProgress[card.id] === 'mastered';
+                const isReview = cardProgress[card.id] === 'review';
+
+                const cardEl = document.createElement('div');
+                cardEl.className = "h-[430px] perspective-1000 cursor-pointer group";
+                
+                let categoryBg = "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300";
+                let categoryName = "Prediabetes";
+                if (card.category === 'gdm') {
+                    categoryBg = "bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300";
+                    categoryName = "GDM / Pregnancy";
+                } else if (card.category === 'dosing') {
+                    categoryBg = "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300";
+                    categoryName = "Drug Dosage";
+                } else if (card.category === 'glucose') {
+                    categoryBg = "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300";
+                    categoryName = "Glucose-Centric";
+                } else if (card.category === 'comorbidity') {
+                    categoryBg = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300";
+                    categoryName = "Comorbidities";
+                }
+
+                cardEl.innerHTML = `
+                    <div class="card-inner relative w-full h-full transform-style-3d shadow-md hover:shadow-xl rounded-2xl transition-all duration-300 border border-slate-200 dark:border-slate-800" onclick="flipCardElement(this)">
+                        <!-- FRONT -->
+                        <div class="absolute inset-0 w-full h-full backface-hidden bg-white dark:bg-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${categoryBg}">${categoryName}</span>
+                                    <div class="flex items-center space-x-1">
+                                        ${isMastered ? '<i class="fa-solid fa-circle-check text-emerald-500 text-sm" title="Mastered"></i>' : ''}
+                                        ${isReview ? '<i class="fa-solid fa-clock-rotate-left text-amber-500 text-sm" title="Needs Review"></i>' : ''}
+                                    </div>
+                                </div>
+                                <h3 class="font-bold text-base sm:text-lg text-slate-900 dark:text-white mb-2 leading-snug">${card.title}</h3>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${card.question}</p>
+                            </div>
+                            <div class="pt-3 border-t border-slate-100 dark:border-slate-700/50 flex justify-between items-center text-xs text-slate-400">
+                                <span>Click to flip</span>
+                                <span class="text-brand-500 group-hover:translate-x-0.5 transition-transform"><i class="fa-solid fa-rotate mr-1"></i>Flip Card</span>
+                            </div>
+                        </div>
+
+                        <!-- BACK -->
+                        <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-slate-900 text-white rounded-2xl p-6 flex flex-col justify-between overflow-y-auto border-2 border-brand-500">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-brand-400 uppercase tracking-wider">Clinical Details</span>
+                                    <span class="text-xs text-slate-400">Card #${card.id}</span>
+                                </div>
+                                <div class="text-xs text-slate-200 leading-relaxed">
+                                    ${card.answer}
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-slate-800 text-[10px] text-slate-400 text-right">
+                                Click to view prompt
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(cardEl);
+            });
+        }
+
+        // 3D Flip Card Action
+        function flipCardElement(el) {
+            el.classList.toggle('rotate-y-180');
+        }
+
+        // Toggle Mode
+        function toggleMode() {
+            isStudyMode = !isStudyMode;
+            const studyContainer = document.getElementById('studyModeContainer');
+            const browseContainer = document.getElementById('browseModeContainer');
+            const modeText = document.getElementById('modeText');
+            const modeIcon = document.getElementById('modeIcon');
+
+            if (isStudyMode) {
+                studyContainer.classList.remove('hidden');
+                browseContainer.classList.add('hidden');
+                document.getElementById('emptyState').classList.add('hidden');
+                modeText.innerText = "Grid View";
+                modeIcon.className = "fa-solid fa-border-all text-brand-600 dark:text-brand-400";
+                studyIndex = 0;
+                renderStudyCard();
+            } else {
+                studyContainer.classList.add('hidden');
+                browseContainer.classList.remove('hidden');
+                modeText.innerText = "Study Mode";
+                modeIcon.className = "fa-solid fa-graduation-cap text-brand-600 dark:text-brand-400";
+                renderBrowseCards();
+            }
+        }
+
+        // Study Mode Render & Actions
+        function renderStudyCard() {
+            if (filteredCards.length === 0) {
+                document.getElementById('studyModeContainer').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                return;
+            }
+
+            const card = filteredCards[studyIndex];
+            const cardInner = document.getElementById('studyCardInner');
+            
+            cardInner.classList.remove('rotate-y-180');
+
+            document.getElementById('studyProgressText').innerText = `Card ${studyIndex + 1} of ${filteredCards.length}`;
+            const progressPercent = ((studyIndex + 1) / filteredCards.length) * 100;
+            document.getElementById('studyProgressBar').style.width = `${progressPercent}%`;
+
+            // Category badge styling
+            const catBadge = document.getElementById('studyCardCategory');
+            catBadge.innerText = card.category;
+            if (card.category === 'gdm') {
+                catBadge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300";
+            } else if (card.category === 'dosing') {
+                catBadge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300";
+            } else if (card.category === 'prediabetes') {
+                catBadge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
+            } else if (card.category === 'glucose') {
+                catBadge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300";
+            } else {
+                catBadge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300";
+            }
+
+            document.getElementById('studyCardQuestion').innerText = card.title;
+            document.getElementById('studyCardSubtext').innerText = card.question;
+            document.getElementById('studyCardAnswer').innerHTML = card.answer;
+
+            updateStudyStats();
+        }
+
+        function flipStudyCard() {
+            document.getElementById('studyCardInner').classList.toggle('rotate-y-180');
+        }
+
+        function nextStudyCard() {
+            if (studyIndex < filteredCards.length - 1) {
+                studyIndex++;
+                renderStudyCard();
+            }
+        }
+
+        function prevStudyCard() {
+            if (studyIndex > 0) {
+                studyIndex--;
+                renderStudyCard();
+            }
+        }
+
+        function markCard(mastered) {
+            if (filteredCards.length === 0) return;
+            const currentCard = filteredCards[studyIndex];
+            cardProgress[currentCard.id] = mastered ? 'mastered' : 'review';
+            saveProgress();
+            
+            if (studyIndex < filteredCards.length - 1) {
+                nextStudyCard();
+            }
+        }
+
+        function updateStudyStats() {
+            const mastered = Object.values(cardProgress).filter(v => v === 'mastered').length;
+            const review = Object.values(cardProgress).filter(v => v === 'review').length;
+            document.getElementById('masteredCount').innerText = mastered;
+            document.getElementById('reviewCount').innerText = review;
+        }
+
+        // Toolkit Modal Functions
+        function openToolsModal() {
+            document.getElementById('toolsModal').classList.remove('hidden');
+        }
+
+        function closeToolsModal() {
+            document.getElementById('toolsModal').classList.add('hidden');
+        }
+
+        // GDM OGTT Evaluator Tool
+        function evaluateGDMOGTT() {
+            const fasting = parseFloat(document.getElementById('ogttFasting').value);
+            const hr1 = parseFloat(document.getElementById('ogtt1hr').value);
+            const hr2 = parseFloat(document.getElementById('ogtt2hr').value);
+            const resEl = document.getElementById('gdmResult');
+
+            if (isNaN(fasting) && isNaN(hr1) && isNaN(hr2)) {
+                resEl.innerHTML = `<span class="text-rose-500 font-medium">Please enter at least one plasma glucose value.</span>`;
+                return;
+            }
+
+            let isAbnormal = false;
+            let details = [];
+
+            if (!isNaN(fasting)) {
+                if (fasting >= 92) {
+                    isAbnormal = true;
+                    details.push(`Fasting ${fasting} mg/dL (Cutoff ≥92) ❌`);
+                } else {
+                    details.push(`Fasting ${fasting} mg/dL (Normal) ✓`);
+                }
+            }
+
+            if (!isNaN(hr1)) {
+                if (hr1 >= 180) {
+                    isAbnormal = true;
+                    details.push(`1-Hour ${hr1} mg/dL (Cutoff ≥180) ❌`);
+                } else {
+                    details.push(`1-Hour ${hr1} mg/dL (Normal) ✓`);
+                }
+            }
+
+            if (!isNaN(hr2)) {
+                if (hr2 >= 153) {
+                    isAbnormal = true;
+                    details.push(`2-Hour ${hr2} mg/dL (Cutoff ≥153) ❌`);
+                } else {
+                    details.push(`2-Hour ${hr2} mg/dL (Normal) ✓`);
+                }
+            }
+
+            if (isAbnormal) {
+                resEl.innerHTML = `
+                    <div class="p-2.5 bg-pink-100 dark:bg-pink-950/80 rounded-lg border border-pink-300 dark:border-pink-800 text-pink-950 dark:text-pink-100">
+                        <strong class="text-pink-700 dark:text-pink-300 flex items-center">
+                            <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>DIAGNOSIS: Gestational Diabetes Mellitus (GDM)
+                        </strong>
+                        <p class="mt-1 text-[11px] leading-tight">${details.join(" | ")}</p>
+                        <p class="mt-1.5 font-semibold text-[11px]">Recommended Next Steps: Initiate MNT, physical activity, SMBG qid, and consider insulin if targets unmet.</p>
+                    </div>
+                `;
+            } else {
+                resEl.innerHTML = `
+                    <div class="p-2.5 bg-emerald-100 dark:bg-emerald-950/80 rounded-lg border border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100">
+                        <strong class="text-emerald-700 dark:text-emerald-300 flex items-center">
+                            <i class="fa-solid fa-circle-check mr-1.5"></i>NORMAL OGTT (No GDM Diagnosis)
+                        </strong>
+                        <p class="mt-1 text-[11px] leading-tight">${details.join(" | ")}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function calculateBMI() {
+            const weight = parseFloat(document.getElementById('calcWeight').value);
+            const heightCm = parseFloat(document.getElementById('calcHeight').value);
+            const resEl = document.getElementById('bmiResult');
+
+            if (!weight || !heightCm) {
+                resEl.innerHTML = `<span class="text-rose-500">Please enter valid weight and height.</span>`;
+                return;
+            }
+
+            const heightM = heightCm / 100;
+            const bmi = (weight / (heightM * heightM)).toFixed(1);
+
+            let status = "";
+            if (bmi < 18.5) status = "Underweight";
+            else if (bmi < 23) status = "Normal Weight (Asian Cutoff Baseline)";
+            else if (bmi < 25) status = "Overweight in Asian Populations (AACE Cutoff ≥23)";
+            else if (bmi < 30) status = "Overweight (General Population Cutoff ≥25)";
+            else status = "Obesity (Class I+)";
+
+            resEl.innerHTML = `
+                <div class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                    <p class="font-bold text-slate-900 dark:text-white">Calculated BMI: ${bmi} kg/m²</p>
+                    <p class="text-xs text-brand-600 dark:text-brand-400 mt-1">${status}</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Weight Loss Target: 7–10% recommended for T2D prevention/management if overweight.</p>
+                </div>
+            `;
+        }
+
+        function evaluateEGFR() {
+            const egfr = parseFloat(document.getElementById('calcEGFR').value);
+            const resEl = document.getElementById('egfrResult');
+
+            if (!egfr) {
+                resEl.innerHTML = `<span class="text-rose-500">Please enter a valid eGFR value.</span>`;
+                return;
+            }
+
+            let html = `<div class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg space-y-1">`;
+            html += `<p class="font-bold text-slate-900 dark:text-white">eGFR: ${egfr} mL/min/1.73m²</p>`;
+
+            if (egfr >= 60) {
+                html += `<p class="text-emerald-500 font-semibold">• Metformin: Full dose (up to 2,000–2,550 mg/day).</p>`;
+                html += `<p class="text-emerald-500 font-semibold">• SGLT2i: Full glycemic & renal benefit.</p>`;
+                html += `<p class="text-purple-400 font-semibold">• Finerenone: Start 20 mg daily if UACR ≥30 mg/g.</p>`;
+            } else if (egfr >= 45) {
+                html += `<p class="text-emerald-500 font-semibold">• Metformin: Full dose safe; monitor renal function q3-6m.</p>`;
+                html += `<p class="text-amber-500 font-semibold">• SGLT2i: Continued for CKD/HF progression benefit.</p>`;
+                html += `<p class="text-purple-400 font-semibold">• Finerenone: Start 10 mg daily if UACR ≥30 mg/g.</p>`;
+            } else if (egfr >= 30) {
+                html += `<p class="text-amber-500 font-semibold">• Metformin: Max dose 1,000 mg/day; do NOT initiate new treatment.</p>`;
+                html += `<p class="text-emerald-500 font-semibold">• SGLT2i: Continue (Dapa down to 25, Empa down to 20 for CKD/HF).</p>`;
+                html += `<p class="text-purple-400 font-semibold">• Finerenone: Start 10 mg daily (monitor K+ at 4 weeks).</p>`;
+            } else {
+                html += `<p class="text-rose-500 font-bold">• Metformin: CONTRAINDICATED (eGFR <30).</p>`;
+                html += `<p class="text-emerald-500 font-semibold">• GLP-1 RA / Tirzepatide: Preferred agents (no renal adjustment required).</p>`;
+            }
+
+            html += `</div>`;
+            resEl.innerHTML = html;
+        }
+
+        // Dark Mode Switcher
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = "fa-solid fa-moon text-lg";
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                icon.className = "fa-solid fa-sun text-lg text-amber-400";
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Init theme from preference
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.getElementById('themeIcon').className = "fa-solid fa-sun text-lg text-amber-400";
+        }
+    </script>
+</body>
+</html>
